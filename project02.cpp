@@ -5,144 +5,189 @@ using namespace std;
 
 //Simple_Pipe simple_pipe;
 int tempIndex;
-int Ry = 0, Rz = 0 , Rx = 0, destReg = 0;
-bool IF_END = false, FLAG = false;
+int Ry = 0, Rz = 0 , Rx = 0, destReg = 0, i = 3;
+bool IF_END = false, CLK_FLAG = false, DECODE_FLAG = false, EXEC_FLAG = false;
 std::vector<char> buffer;
-char INSTRCUTION_REG[3]; // 0 : Destination Address, 1 : Left Operand, 2 : Right Operand
+size_t BUFFER_SIZE;
+char INSTRUCTION_REG[4], FETCH_QUEUE[4] = {0x00,0x00,0x00,0x00}, OPCODE_OP; // 0 : OPCODE 1 : Destination Address, 2 : Left Operand, 3 : Right Operand
 int DECODER_QUEUE[3];
-int Simple_Pipe :: EX_ALU()
+
+
+int Simple_Pipe :: ID_INSTRUCTION()
 {
-    DECODER_QUEUE[0] = INSTRCUTION_REG[0]&0xff;
-    DECODER_QUEUE[1] = INSTRCUTION_REG[1]&0xff;
-    DECODER_QUEUE[2] = INSTRCUTION_REG[2]&0xff;
+    //cout<<"\nindide ID_INST";
+    DECODER_QUEUE[0] = INSTRUCTION_REG[1]&0xff; // 
+    DECODER_QUEUE[1] = INSTRUCTION_REG[2]&0xff;
+    DECODER_QUEUE[2] = INSTRUCTION_REG[3]&0xff;
+    OPCODE_OP = INSTRUCTION_REG[0];
+    //EXEC_FLAG = true;
     //return buffer[tempIndex]&0xff;
     return 0;
 }
 
-int Simple_Pipe ::EX_REG_FETCH(int index)
+int Simple_Pipe :: IF_FETCH()
 {
-    tempIndex = index;
-    //execution_time = (IF_END == true) ? execution_time : ++execution_time;
-    // if (flag == 1 && OPCODE_SET == false) // to assign immediate value
-    // {
-    INSTRCUTION_REG[0] = buffer[--tempIndex];
-    INSTRCUTION_REG[1] = buffer[--tempIndex];
-    INSTRCUTION_REG[2] = buffer[--tempIndex];
-    // INSTRCUTION_REG[0] = simple_pipe.EX_ALU(--tempIndex);
-    // INSTRCUTION_REG[1] = simple_pipe.EX_ALU(--tempIndex);     //assign Left operand, typecast to integer
-    // INSTRCUTION_REG[2] = simple_pipe.EX_ALU(--tempIndex);
-    // }
-    // else if(flag == 1 && OPCODE_SET == true)
-    // {
-    //     INSTRCUTION_REG[0] = simple_pipe.EX_ALU(--tempIndex); //assign Destination register value
-    //     INSTRCUTION_REG[1] = simple_pipe.EX_ALU(--tempIndex);     //assign Left operand, typecast to integer
-    // }
+    
+    tempIndex = i;
+        INSTRUCTION_REG[0] = FETCH_QUEUE[0]; 
+        INSTRUCTION_REG[1] = FETCH_QUEUE[1];
+        INSTRUCTION_REG[2] = FETCH_QUEUE[2]; 
+        INSTRUCTION_REG[3] = FETCH_QUEUE[3]; 
+
+        FETCH_QUEUE[0] = buffer[tempIndex];
+        FETCH_QUEUE[1] = buffer[--tempIndex];
+        FETCH_QUEUE[2] = buffer[--tempIndex];
+        FETCH_QUEUE[3] = buffer[--tempIndex];
+        i = i+4;
     return 0;
 }
 
-void Simple_Pipe :: EX_REG_ASIG(int* Rx, int* Ry, int* Rz)
+void Simple_Pipe :: EX_ALU(int* Rx, int* Ry, int* Rz)
 {
-    simple_pipe.EX_ALU();
     *Rx = DECODER_QUEUE[0];
     *Ry = DECODER_QUEUE[1];
     *Rz = DECODER_QUEUE[2];
-    for (int FETCH_COUNTER = 0; FETCH_COUNTER < 3 && IF_END == true; FETCH_COUNTER++)
+    for (int FETCH_COUNTER = 0; FETCH_COUNTER < 3 && i >= BUFFER_SIZE; FETCH_COUNTER++, execution_time++)
     {
-        INSTRCUTION_REG[FETCH_COUNTER] = 0;
-        //FLAG = true;
-        simple_pipe.EXEC_COUNT();
+        INSTRUCTION_REG[FETCH_COUNTER] = 0;
+        EXEC_FLAG = true;
     }
-        //cout<<"\n R"<<FETCH_COUNTER<<" - "<<INSTRCUTION_REG[FETCH_COUNTER];
+}
+
+void Simple_Pipe :: EX_EXECUTE()
+{
+        request_done++;
+        if(OPCODE_OP == '\x00') 
+        {
+            //flag = simple_pipe.EX_REG_FETCH(i, 1, false);
+            simple_pipe.OPCODE_x00(Rx, Ry);
+        }
+        else if(OPCODE_OP == '\x10')
+        {
+            //flag = simple_pipe.EX_REG_FETCH(i, 1, false);
+            simple_pipe.OPCODE_x10(Rx, Ry, Rz);
+        }
+        else if(OPCODE_OP == '\x11')
+        {
+            //flag = simple_pipe.EX_REG_FETCH(i,1,false);
+            simple_pipe.OPCODE_x11(Rx, Ry, Rz);
+        }
+        else if(OPCODE_OP == '\x20')
+        {
+            //flag = simple_pipe.EX_REG_FETCH(i,1,false);
+            simple_pipe.OPCODE_x20(Rx, Ry, Rz);
+        }
+        else if(OPCODE_OP == '\x21')
+        {
+            //flag = simple_pipe.EX_REG_FETCH(i,1,false);
+            simple_pipe.OPCODE_x21(Rx, Ry, Rz);
+        }
+        else if(OPCODE_OP == '\x30')
+        {
+            //flag = simple_pipe.EX_REG_FETCH(i,1,false);
+            simple_pipe.OPCODE_x30(Rx, Ry, Rz);
+        }
+        else if(OPCODE_OP == '\x31')
+        {
+            //flag = simple_pipe.EX_REG_FETCH(i,1,false);
+            simple_pipe.OPCODE_x31(Rx, Ry, Rz);
+        }
+        else if(OPCODE_OP == '\x40')
+        {
+            //flag = simple_pipe.EX_REG_FETCH(i,1,false);
+            simple_pipe.OPCODE_x40(Rx, Ry, Rz);
+        }
+        else if(OPCODE_OP == '\x41')
+        {
+            //flag = simple_pipe.EX_REG_FETCH(i,1,false);
+            simple_pipe.OPCODE_x41(Rx, Ry, Rz);
+        }
 }
 
 int Simple_Pipe ::OPCODE_x00(int Rx, int Ry) //OPCODE SET
 {
     int Rz = 0; //Dummy value
-    simple_pipe.EX_REG_ASIG(&Rx, &Ry, &Rz);     //cout<<endl << &Rx<<&Ry;
+    simple_pipe.EX_ALU(&Rx, &Ry, &Rz);     //cout<<endl << &Rx<<&Ry;
     simple_pipe.registers[Rx] = Ry;
-    simple_pipe.EXEC_COUNT();
     return 0;
 }
 
 int Simple_Pipe ::OPCODE_x10(int Rx, int Ry, int Rz) //OPCODE ADD 
 {
-    simple_pipe.EX_REG_ASIG(&Rx, &Ry, &Rz);
+    simple_pipe.EX_ALU(&Rx, &Ry, &Rz);
     simple_pipe.registers[Rx] = simple_pipe.registers[Ry]+simple_pipe.registers[Rz];
-    simple_pipe.EXEC_COUNT();
     return 0;
 }
 
 int Simple_Pipe ::OPCODE_x11(int Rx, int Ry, int Rz) //OPCODE ADD with Immediate value
 {
-    simple_pipe.EX_REG_ASIG(&Rx, &Ry, &Rz);
+    simple_pipe.EX_ALU(&Rx, &Ry, &Rz);
     simple_pipe.registers[Rx] = simple_pipe.registers[Ry]+Rz;
-    simple_pipe.EXEC_COUNT();
     return 0;
 }
 
 int Simple_Pipe ::OPCODE_x20(int Rx, int Ry, int Rz) //OPCODE SUB
 {
-    simple_pipe.EX_REG_ASIG(&Rx, &Ry, &Rz);
+    simple_pipe.EX_ALU(&Rx, &Ry, &Rz);
     simple_pipe.registers[Rx] = simple_pipe.registers[Ry] - simple_pipe.registers[Rz];
-    simple_pipe.EXEC_COUNT();
     return 0;
 }
 
 int Simple_Pipe ::OPCODE_x21(int Rx, int Ry, int Rz) //OPCODE SUB with immediate value
 {
-    simple_pipe.EX_REG_ASIG(&Rx, &Ry, &Rz);
+    simple_pipe.EX_ALU(&Rx, &Ry, &Rz);
     simple_pipe.registers[Rx] = simple_pipe.registers[Ry] - Rz;
-    simple_pipe.EXEC_COUNT();
     return 0;
 }
 
 int Simple_Pipe ::OPCODE_x30(int Rx, int Ry, int Rz) //OPCODE MUL
 {
-    simple_pipe.EX_REG_ASIG(&Rx, &Ry, &Rz);
+    execution_time = execution_time+1;
+    simple_pipe.EX_ALU(&Rx, &Ry, &Rz);
     simple_pipe.registers[Rx] = simple_pipe.registers[Ry] * simple_pipe.registers[Rz];
-    simple_pipe.EXEC_COUNT();
     return 0;
 }
 
 int Simple_Pipe ::OPCODE_x31(int Rx, int Ry, int Rz) //OPCODE MUL with Immediate value
 {
-    simple_pipe.EX_REG_ASIG(&Rx, &Ry, &Rz);
+    execution_time = execution_time+1;
+    simple_pipe.EX_ALU(&Rx, &Ry, &Rz);
     simple_pipe.registers[Rx] = simple_pipe.registers[Ry] * Rz;
-    simple_pipe.EXEC_COUNT();
     return 0;
 }
 
 int Simple_Pipe ::OPCODE_x40(int Rx, int Ry, int Rz) //OPCODE DIV
 {
-    simple_pipe.EX_REG_ASIG(&Rx, &Ry, &Rz);
-    simple_pipe.registers[Rx] = simple_pipe.registers[Ry]/simple_pipe.registers[Rz];
-    simple_pipe.EXEC_COUNT();
+    execution_time = execution_time+3;
+    simple_pipe.EX_ALU(&Rx, &Ry, &Rz);
+    simple_pipe.registers[Rx] = simple_pipe.registers[Ry] / simple_pipe.registers[Rz];
+
     return 0;
 }
 
 int Simple_Pipe ::OPCODE_x41(int Rx, int Ry, int Rz) //OPCODE DIV with Immediate value
 {
-    simple_pipe.EX_REG_ASIG(&Rx, &Ry, &Rz);
-    simple_pipe.registers[Rx] = simple_pipe.registers[Ry]/Rz;
-    simple_pipe.EXEC_COUNT();
+    execution_time = execution_time+3;
+    simple_pipe.EX_ALU(&Rx, &Ry, &Rz);
+    simple_pipe.registers[Rx] = simple_pipe.registers[Ry] / Rz;
     return 0;
 }
 
 void Simple_Pipe :: EXEC_COUNT()
-{   
-    if(IF_END == true)
-        execution_time++;
-} 
+{
+        execution_time++; 
+}
 
 int main(int argc, char *argv[]){
     Simple_Pipe simple_pipe;
-    for(int i = 0; i < REG_COUNT; i++){
+    for(int i = 0; i < REG_COUNT; i++)
+    {
         simple_pipe.registers[i] = 0;
     }
 
 //open file
 std::ifstream infile(argv[1], ios::in | ios::binary);
-int flag = 0;
+
 bool OPCODE_SET = false;
 
 //get length of file
@@ -151,68 +196,33 @@ size_t length = infile.tellg();
 infile.seekg(0, infile.beg);
 
 //read file
-if (length > 0) {
+if (length > 0) 
+{
     buffer.resize(length);    
     infile.read(&buffer[0], length);
 }
-size_t BUFFER_SIZE = buffer.size();
-execution_time = 0;
-int d = 1;
-for (int i=0; i <= BUFFER_SIZE; i++,d++) { //Fetch Instructions
-    simple_pipe.EX_REG_FETCH(i);
-    if(d%4 == 0 && d != 0) { 
-        IF_END = (i == BUFFER_SIZE) ? true : false;
-        request_done++;
-        execution_time++;
-        if(buffer[i] == '\x00') 
-        {
-            //flag = simple_pipe.EX_REG_FETCH(i, 1, false);
-            simple_pipe.OPCODE_x00(destReg, Ry);
-        }
-        else if(buffer[i] == '\x10')
-        {
-            //flag = simple_pipe.EX_REG_FETCH(i, 1, false);
-            simple_pipe.OPCODE_x10(destReg, Ry, Rz);
-        }
-        else if(buffer[i] == '\x11')
-        {
-            //flag = simple_pipe.EX_REG_FETCH(i,1,false);
-            simple_pipe.OPCODE_x11(destReg, Ry, Rz);
-        }
-        else if(buffer[i] == '\x20')
-        {
-            //flag = simple_pipe.EX_REG_FETCH(i,1,false);
-            simple_pipe.OPCODE_x20(destReg, Ry, Rz);
-        }
-        else if(buffer[i] == '\x21')
-        {
-            //flag = simple_pipe.EX_REG_FETCH(i,1,false);
-            simple_pipe.OPCODE_x21(destReg, Ry, Rz);
-        }
-        else if(buffer[i] == '\x30')
-        {
-            //flag = simple_pipe.EX_REG_FETCH(i,1,false);
-            simple_pipe.OPCODE_x30(destReg, Ry, Rz);
-        }
-        else if(buffer[i] == '\x31')
-        {
-            //flag = simple_pipe.EX_REG_FETCH(i,1,false);
-            simple_pipe.OPCODE_x31(destReg, Ry, Rz);
-        }
-        else if(buffer[i] == '\x40')
-        {
-            //flag = simple_pipe.EX_REG_FETCH(i,1,false);
-            simple_pipe.OPCODE_x40(destReg, Ry, Rz);
-        }
-        else if(buffer[i] == '\x41')
-        {
-            //flag = simple_pipe.EX_REG_FETCH(i,1,false);
-            simple_pipe.OPCODE_x41(destReg, Ry, Rz);
-        }
-        else    
-            cout<<"No Match!\n";
-        }
-    }
+
+BUFFER_SIZE = buffer.size();
+execution_time = -1;
+
+//for (i = 3; i <= BUFFER_SIZE; i=i+4) 
+while(EXEC_FLAG == false)
+{
+    ++execution_time;
+    //=====================================//
+    // ******* STAGE 1 ----- FETCH ******* //
+    //=====================================//
+    simple_pipe.IF_FETCH();
+    //=====================================//
+    // ****** STAGE 2 ----- DECODE ******* //
+    //=====================================//
+    simple_pipe.ID_INSTRUCTION();
+     //=====================================//
+    // ******* STAGE 3 ----- EXECUTE ****** //
+    //=====================================//
+    simple_pipe.EX_EXECUTE();
+};
+
 infile.close();
 
 

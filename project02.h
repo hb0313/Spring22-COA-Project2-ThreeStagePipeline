@@ -15,9 +15,10 @@ class Simple_Pipe{
 public:
     int registers[16];
     void print_regs();
-    int EX_ALU();
-    int EX_REG_FETCH(int);
-    void EX_REG_ASIG(int*,int*,int*);
+    int ID_INSTRUCTION();
+    int IF_FETCH();
+    void EX_EXECUTE();
+    void EX_ALU(int*,int*,int*);
     int OPCODE_x00(int, int);
     int OPCODE_x10(int, int, int);
     int OPCODE_x11(int, int, int);
