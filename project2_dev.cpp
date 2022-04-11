@@ -120,6 +120,7 @@ std::ifstream infile(argv[1], ios::in | ios::binary);
 int flag = 0;
 bool OPCODE_SET = false;
 
+
 //get length of file
 infile.seekg(0, infile.end);
 size_t length = infile.tellg();

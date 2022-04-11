@@ -9,9 +9,8 @@ int Ry = 0, Rz = 0 , Rx = 0, destReg = 0, i = 3;
 bool IF_END = false, CLK_FLAG = false, DECODE_FLAG = false, EXEC_FLAG = false;
 std::vector<char> buffer;
 size_t BUFFER_SIZE;
-char INSTRUCTION_REG[4], FETCH_QUEUE[4] = {0x00,0x00,0x00,0x00}, OPCODE_OP; // 0 : OPCODE 1 : Destination Address, 2 : Left Operand, 3 : Right Operand
+char INSTRUCTION_REG[4], OPCODE_OP; // 0 : OPCODE 1 : Destination Address, 2 : Left Operand, 3 : Right Operand
 int DECODER_QUEUE[3];
-
 
 int Simple_Pipe :: ID_INSTRUCTION()
 {
@@ -20,8 +19,7 @@ int Simple_Pipe :: ID_INSTRUCTION()
     DECODER_QUEUE[1] = INSTRUCTION_REG[2]&0xff;
     DECODER_QUEUE[2] = INSTRUCTION_REG[3]&0xff;
     OPCODE_OP = INSTRUCTION_REG[0];
-    //EXEC_FLAG = true;
-    //return buffer[tempIndex]&0xff;
+
     return 0;
 }
 
@@ -29,15 +27,12 @@ int Simple_Pipe :: IF_FETCH()
 {
     
     tempIndex = i;
-        INSTRUCTION_REG[0] = FETCH_QUEUE[0]; 
-        INSTRUCTION_REG[1] = FETCH_QUEUE[1];
-        INSTRUCTION_REG[2] = FETCH_QUEUE[2]; 
-        INSTRUCTION_REG[3] = FETCH_QUEUE[3]; 
 
-        FETCH_QUEUE[0] = buffer[tempIndex];
-        FETCH_QUEUE[1] = buffer[--tempIndex];
-        FETCH_QUEUE[2] = buffer[--tempIndex];
-        FETCH_QUEUE[3] = buffer[--tempIndex];
+        INSTRUCTION_REG[0] = buffer[tempIndex]; 
+        INSTRUCTION_REG[1] = buffer[--tempIndex];
+        INSTRUCTION_REG[2] = buffer[--tempIndex]; 
+        INSTRUCTION_REG[3] = buffer[--tempIndex];
+
         i = i+4;
     return 0;
 }
@@ -49,7 +44,6 @@ void Simple_Pipe :: EX_ALU(int* Rx, int* Ry, int* Rz)
     *Rz = DECODER_QUEUE[2];
     for (int FETCH_COUNTER = 0; FETCH_COUNTER < 3 && i >= BUFFER_SIZE; FETCH_COUNTER++, execution_time++)
     {
-        INSTRUCTION_REG[FETCH_COUNTER] = 0;
         EXEC_FLAG = true;
     }
 }
